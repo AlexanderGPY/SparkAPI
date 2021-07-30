@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<configuration>
+	
+	<property>
+		<name>dfs.balance.bandwidthPerSec</name>
+		<value>10485760</value>
+	</property>
+	
+	<property>
+		<name>dfs.blocksize</name>
+		<value>134217728</value>
+	</property>
+	
+	<property>
+		<name>dfs.client.block.write.replace-datanode-on-failure.enable</name>
+		<value>true</value>
+	</property>
+	
+	<property>
+		<name>dfs.client.failover.proxy.provider.HDFS81748</name>
+		<value>org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider</value>
+	</property>
+	
+	<property>
+		<name>dfs.client.file-block-storage-locations.timeout.millis</name>
+		<value>10000</value>
+	</property>
+	
+	<property>
+		<name>dfs.client.read.shortcircuit</name>
+		<value>true</value>
+	</property>
+	
+	<property>
+		<name>dfs.client.slow.io.warning.threshold.ms</name>
+		<value>900000</value>
+	</property>
+	
+	<property>
+		<name>dfs.client.socket-timeout</name>
+		<value>900000</value>
+	</property>
+	
+	<property>
+		<name>dfs.client.use.datanode.hostname</name>
+		<value>true</value>
+	</property>
+	
+	<property>
+		<name>dfs.datanode.handler.count</name>
+		<value>128</value>
+	</property>
+	
+	<property>
+		<name>dfs.datanode.hdfs-blocks-metadata.enabled</name>
+		<value>true</value>
+	</property>
+	
+	<property>
+		<name>dfs.datanode.max.transfer.threads</name>
+		<value>16480</value>
+	</property>
+	
+	<property>
+		<name>dfs.datanode.max.xcievers</name>
+		<value>8000</value>
+	</property>
+	
+	<property>
+		<name>dfs.datanode.slow.io.warning.threshold.ms</name>
+		<value>90000</value>
+	</property>
+	
+	<property>
+		<name>dfs.datanode.socket.write.timeout</name>
+		<value>960000</value>
+	</property>
+	
+	<property>
+		<name>dfs.datanode.use.datanode.hostname</name>
+		<value>false</value>
+	</property>
+	
+	<property>
+		<name>dfs.domain.socket.path</name>
+		<value>/var/lib/hadoop/dn</value>
+	</property>
+	
+	<property>
+		<name>dfs.encryption.key.provider.uri</name>
+		<value></value>
+	</property>
+	
+	<property>
+		<name>dfs.ha.automatic-failover.enabled</name>
+		<value>true</value>
+	</property>
+	
+	<property>
+		<name>dfs.ha.fencing.methods</name>
+		<value>shell(/bin/true)</value>
+	</property>
+	
+	<property>
+		<name>dfs.ha.namenodes.HDFS81748</name>
+		<value>nn2,nn1</value>
+	</property>
+	
+	<property>
+		<name>dfs.ha.zkfc.port</name>
+		<value>4011</value>
+	</property>
+	
+	<property>
+		<name>dfs.heartbeat.interval</name>
+		<value>2</value>
+	</property>
+	
+	<property>
+		<name>dfs.hosts</name>
+		<value>/usr/local/service/hadoop/etc/hadoop/hdfshosts</value>
+	</property>
+	
+	<property>
+		<name>dfs.hosts.exclude</name>
+		<value>/usr/local/service/hadoop/etc/hadoop/hdfsexcludedhosts</value>
+	</property>
+	
+	<property>
+		<name>dfs.journalnode.edits.dir</name>
+		<value>/data/emr/hdfs/journalnode</value>
+	</property>
+	
+	<property>
+		<name>dfs.namenode.acls.enabled</name>
+		<value>true</value>
+	</property>
+	
+	<property>
+		<name>dfs.namenode.datanode.registration.ip-hostname-check</name>
+		<value>false</value>
+	</property>
+	
+	<property>
+		<name>dfs.namenode.handler.count</name>
+		<value>64</value>
+	</property>
+	
+	<property>
+		<name>dfs.namenode.heartbeat.recheck-interval</name>
+		<value>90000</value>
+	</property>
+	
+	<property>
+		<name>dfs.namenode.http-address.HDFS81748.nn1</name>
+		<value>192.168.248.32:4008</value>
+	</property>
+	
+	<property>
+		<name>dfs.namenode.http-address.HDFS81748.nn2</name>
+		<value>192.168.248.54:4008</value>
+	</property>
+	
+	<property>
+		<name>dfs.namenode.https-address.HDFS81748.nn1</name>
+		<value>192.168.248.32:4009</value>
+	</property>
+	
+	<property>
+		<name>dfs.namenode.https-address.HDFS81748.nn2</name>
+		<value>192.168.248.54:4009</value>
+	</property>
+	
+	<property>
+		<name>dfs.namenode.name.dir</name>
+		<value>/data/emr/hdfs/namenode</value>
+	</property>
+	
+	<property>
+		<name>dfs.namenode.rpc-address.HDFS81748.nn1</name>
+		<value>192.168.248.32:4007</value>
+	</property>
+	
+	<property>
+		<name>dfs.namenode.rpc-address.HDFS81748.nn2</name>
+		<value>192.168.248.54:4007</value>
+	</property>
+	
+	<property>
+		<name>dfs.namenode.shared.edits.dir</name>
+		<value>qjournal://192.168.248.36:4005;192.168.248.24:4005;192.168.248.64:4005/hadoop</value>
+	</property>
+	
+	<property>
+		<name>dfs.nameservices</name>
+		<value>HDFS81748</value>
+	</property>
+	
+	<property>
+		<name>dfs.replication</name>
+		<value>3</value>
+	</property>
+	
+	<property>
+		<name>dfs.socket.timeout</name>
+		<value>900000</value>
+	</property>
+	
+	<property>
+		<name>dfs.webhdfs.enabled</name>
+		<value>true</value>
+	</property>
+	
+	<property>
+		<name>ha.zookeeper.quorum</name>
+		<value>192.168.248.36:2181,192.168.248.24:2181,192.168.248.64:2181</value>
+	</property>
+	
+	<property>
+		<name>output.replace-datanode-on-failure</name>
+		<value>false</value>
+	</property>
+	
+</configuration>
