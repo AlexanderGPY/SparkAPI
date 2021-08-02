@@ -26,12 +26,18 @@ object ParseMicLog {
       .repartition(100)
       .filter(line => !line.contains("Microscopic_view"))
       .map { line =>
-        val arr = line.split(" ")
-        val date = arr(0)
-        val ip = arr(3)
-        val user_id = arr(4)
-        val space_id = arr(5)
-        (date, user_id, ip)
+        try {
+          val arr = line.split(" ")
+          val date = arr(0)
+          val ip = arr(3)
+          val user_id = arr(4)
+          val space_id = arr(5)
+          (date, user_id, ip)
+        } catch {
+          case ex: Exception =>
+            println(line)
+            ("0", "0", "0")
+        }
       }
       .toDF("date", "user_id", "ip")
       .where("user_id is not null")
@@ -41,6 +47,7 @@ object ParseMicLog {
       .orderBy("date", "user_id")
     df.coalesce(1).write.csv(outPutPath)
 
+    import spark.implicits
     val end_time = System.currentTimeMillis()
     println("time_cost: " + (end_time - start_time) / 1000 + " sec")
   }

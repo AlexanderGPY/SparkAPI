@@ -26,7 +26,7 @@ object Test {
     import spark.implicits._
     val rdd = sc.textFile("file:///home/hadoop/mytest/welove.log_2021-06-09*")
 
-    val rdd1 = rdd.map(line => { line.split(" ")(0) })
+    val rdd1 = rdd.map(line => line.split(" ")(0))
     val df1 = rdd1.toDF("user_id")
     val df = df1.selectExpr("user_id", "'2021-06-09' as c_date")
     df.write.mode("append").saveAsTable("xianqueqiao_mid.mid_sweet_app_user")
@@ -35,17 +35,17 @@ object Test {
     val input =
       "file:///home/hadoop/mytest/welove.log_2021-0*"
     val res = get_hdfs_dir(input, sc)
-    res.foreach(line => {
+    res.foreach { line =>
       val dateL = line.split("[.]")(1).split("_")(1)
       val rdd = sc.textFile(line)
-      val rdd1 = rdd.map(line => {
+      val rdd1 = rdd.map { line =>
         val uid = line.split(" ")(0)
         val date = dateL
         (uid, date)
-      })
+      }
       val df1 = rdd1.toDF("user_id", "c_date")
       df1.write.mode("append").saveAsTable("xianqueqiao_mid.mid_sweet_app_user")
-    })
+    }
 
   }
 
@@ -53,21 +53,20 @@ object Test {
     val fileRDD =
       sc.newAPIHadoopFile[LongWritable, Text, TextInputFormat](input)
     val hadoopRDD = fileRDD.asInstanceOf[NewHadoopRDD[LongWritable, Text]]
-    val fileAdnLine = hadoopRDD.mapPartitionsWithInputSplit(
-      (inputSplit: InputSplit, iterator: Iterator[(LongWritable, Text)]) => {
+    val fileAdnLine = hadoopRDD.mapPartitionsWithInputSplit {
+      (inputSplit: InputSplit, iterator: Iterator[(LongWritable, Text)]) =>
         val file = inputSplit.asInstanceOf[FileSplit]
         iterator
           .take(1)
-          .map(x => {
+          .map { x =>
             file.getPath.toString
-          })
-      }
-    )
+          }
+    }
     val dirOut: Array[String] = fileAdnLine
       .coalesce(1)
-      .map(lines => {
+      .map { lines =>
         lines
-      })
+      }
       .collect()
     dirOut
   }
