@@ -1,6 +1,7 @@
 package com.gpy.spark.batch
 
-import org.apache.spark.sql.functions.{col, udf}
+import com.alibaba.fastjson.JSONObject
+import org.apache.spark.sql.functions.{col, collect_set, concat, sum, udf}
 import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.elasticsearch.hadoop.cfg.ConfigurationOptions
 import org.elasticsearch.spark.sql._
@@ -17,70 +18,35 @@ object ES_Spark_Test {
       .appName("ES读取数据")
       .master("local[*]")
       .config(ConfigurationOptions.ES_NODES_WAN_ONLY, "true")
-      .config(ConfigurationOptions.ES_NODES, "192.168.248.7")
+      .config(ConfigurationOptions.ES_NODES, "192.168.248.14")
       .config(ConfigurationOptions.ES_PORT, "9200")
       .config(ConfigurationOptions.ES_NET_HTTP_AUTH_USER, "elastic")
-      .config(ConfigurationOptions.ES_NET_HTTP_AUTH_PASS, "d2zN9WGupgqL4Rhq")
+      .config(ConfigurationOptions.ES_NET_HTTP_AUTH_PASS, "QA2JB7BoHpbBtTd")
       .getOrCreate()
     val query: String =
-      """{
+      """
+        |{
         |    "bool": {
         |      "must": [],
         |      "filter": [
         |        {
         |          "bool": {
-        |            "filter": [
+        |            "should": [
         |              {
-        |                "bool": {
-        |                  "should": [
-        |                    {
-        |                      "match": {
-        |                        "bn": "cmd_result"
-        |                      }
-        |                    }
-        |                  ],
-        |                  "minimum_should_match": 1
-        |                }
-        |              },
-        |              {
-        |                "bool": {
-        |                  "filter": [
-        |                    {
-        |                      "bool": {
-        |                        "should": [
-        |                          {
-        |                            "match": {
-        |                              "cmd": "pair_info_get_no_auth"
-        |                            }
-        |                          }
-        |                        ],
-        |                        "minimum_should_match": 1
-        |                      }
-        |                    },
-        |                    {
-        |                      "bool": {
-        |                        "should": [
-        |                          {
-        |                            "match": {
-        |                              "node_code": -90
-        |                            }
-        |                          }
-        |                        ],
-        |                        "minimum_should_match": 1
-        |                      }
-        |                    }
-        |                  ]
+        |                "match": {
+        |                  "sv": "farm"
         |                }
         |              }
-        |            ]
+        |            ],
+        |            "minimum_should_match": 1
         |          }
         |        },
         |        {
         |          "range": {
         |            "@timestamp": {
         |              "format": "strict_date_optional_time",
-        |              "gte": "2021-07-27T02:26:27.199Z",
-        |              "lte": "2021-07-29T02:26:27.199Z"
+        |              "gte": "2021-08-28T16:00:00.000Z",
+        |              "lte": "2021-09-04T15:59:59.999Z"
         |            }
         |          }
         |        }
@@ -88,20 +54,30 @@ object ES_Spark_Test {
         |      "should": [],
         |      "must_not": []
         |    }
-        |  }""".stripMargin
+        |  }
+        |""".stripMargin
 
     //大概耗时三分钟
-    val df: DataFrame = spark.esDF("dbay-backend-2021-07-2*", query)
+    val df: DataFrame = spark.esDF("dbay-frontend-2021-09-0*", query)
 
     val this_time = udf(MyUdf.turn_timestamp)
-    df
-      .select("open_id", "@timestamp")
-      .orderBy("@timestamp")
-      .dropDuplicates()
-      .coalesce(1)
-      .write
-      .json(
-        "file:///D:\\ideaProject\\sparkAPI\\result_data//es_spark_download7"
-      )
+    df.groupBy("sv", "bn", "url", "err_code", "err_msg")
+      .count()
+      .filter("count >= 10")
+      .orderBy("sv", "bn", "url")
+      .toJSON
+      .foreach { row =>
+        val jo = new JSONObject()
+        val joo = new JSONObject()
+        joo.put("content", row)
+        jo.put("msgtype", "text")
+        jo.put("text", joo)
+        println(jo)
+        doPost.postResponse(
+          "https://qyapi.weixin.qq.com/cgi-bin/webhook/send",
+          "d4ab1ceb-97d1-4192-aad5-212149acce64",
+          jo
+        )
+      }
   }
 }
