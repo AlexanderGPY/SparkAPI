@@ -1,5 +1,6 @@
 package com.gpy.spark.batch
 
+import org.apache.spark.sql.functions._
 import org.apache.spark.sql.{DataFrame, SparkSession}
 
 /**
@@ -22,31 +23,31 @@ object ParseMicLog {
     val outPutPath = args(1)
     val df = spark.read
       .textFile(user_info_file)
-      .repartition(200)
-      .filter(line => line.contains("Microscopic_view"))
-      .filter(line => line.contains("|| SweetLogin"))
-      .map(line => {
-        val arr = line.split(" ")
-        val date = arr(1)
-        val user_id = arr(7)
-        val space_id = arr(8)
-        val plat = arr(9) match {
-          case "1" => "QQ"
-          case "7" => "WeChat"
-          case _   => "Phone Or Email"
+      .repartition(100)
+      .filter(line => !line.contains("Microscopic_view"))
+      .map { line =>
+        try {
+          val arr = line.split(" ")
+          val date = arr(0)
+          val ip = arr(3)
+          val user_id = arr(4)
+          val space_id = arr(5)
+          (date, user_id, ip)
+        } catch {
+          case ex: Exception =>
+            println(line)
+            ("0", "0", "0")
         }
-        val ua = arr(11).contains("Android")
-        val os = ua match {
-          case true  => "android"
-          case false => "ios"
-          case _     => "dev_tool"
-        }
-        (date, user_id, space_id, plat, os)
-      })
-      .toDF("date", "user_id", "space_id", "platform", "os")
+      }
+      .toDF("date", "user_id", "ip")
       .where("user_id is not null")
-    df.coalesce(1).write.mode("append").json(outPutPath)
+      .groupBy("date", "user_id", "ip")
+      .count()
+      .alias("ip_num_cnt")
+      .orderBy("date", "user_id")
+    df.coalesce(1).write.csv(outPutPath)
 
+    import spark.implicits
     val end_time = System.currentTimeMillis()
     println("time_cost: " + (end_time - start_time) / 1000 + " sec")
   }
