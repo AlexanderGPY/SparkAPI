@@ -17,7 +17,7 @@ object Resorting_guide_data {
 
     import spark.implicits._
     val df = spark.sparkContext.textFile(
-      "file:///D:\\ideaProject\\sparkAPI\\data\\guide.result"
+      args(0)
     )
     val regex = """^\d+$"""
     val data = df.map { line =>
@@ -34,6 +34,6 @@ object Resorting_guide_data {
       .orderBy(asc("el"), asc("dim"), desc("date"))
       .coalesce(1)
       .write
-      .csv("file:///D:\\ideaProject\\sparkAPI\\result\\guide.result")
+      .csv(args(1))
   }
 }

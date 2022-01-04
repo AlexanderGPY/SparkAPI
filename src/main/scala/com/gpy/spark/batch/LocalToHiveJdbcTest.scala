@@ -2,12 +2,6 @@ package com.gpy.spark.batch
 
 import java.io.{File, PrintWriter}
 
-import org.json4s._
-import org.json4s.jackson.JsonMethods._
-import org.json4s.native.Serialization
-
-import scala.beans.BeanProperty
-
 /**
   * @description:
   * @author:AlexanderGuo
@@ -29,118 +23,153 @@ object LocalToHiveJdbcTest {
     val hs2host = "192.168.248.54"
     val hs2port = "7001"
     val con = DriverManager.getConnection(
-      s"jdbc:hive2://$hs2host:$hs2port/xianqueqiao_dwd?hive.exec.dynamic.partition.mode=nonstrict;hive.exec.max.dynamic.partitions=100000;hive.mapred.mode=nonstrict;spark.executor.memoryOverhead=15g;spark.executor.memory=12g;spark.executor.cores=8;spark.executor.instances=16;",
+      s"jdbc:hive2://$hs2host:$hs2port/default?hive.exec.dynamic.partition.mode=nonstrict;hive.exec.max.dynamic.partitions=100000;hive.mapred.mode=nonstrict;spark.executor.memoryOverhead=15g;spark.executor.memory=12g;spark.executor.cores=8;spark.executor.instances=16;",
       "hadoop",
       "IKWYj3PpM6gADJ0j"
     )
 
     val stmt = con.createStatement
-    val tableName = "xianqueqiao_dwd.dwd_behavior_app_front_bpl"
 
-    val start_time = System.currentTimeMillis()
-    for (x <- 1 to 1) {
-      val y = x + 13
-      val z = x + 29
-      val sql =
-        """
-          |INSERT OVERWRITE TABLE xianqueqiao_dws.dws_trade_welove_ltv_base_data_1 partition(c_date)
-          |SELECT nvl(ad.user_id,b.user_id) AS user_id,
-          |       sum(nvl(act_num,0)) AS act_num,
-          |       sum(nvl(open_num,0)) AS open_num,
-          |       sum(nvl(b.price,0)) AS td_price,
-          |       nvl(ad.c_date,b.pay_date) AS c_date
-          |FROM
-          |  (SELECT nvl(act.user_id,open.user_id) AS user_id,
-          |          nvl(act.c_date,open.c_date) AS c_date,
-          |          nvl(act.td_ad_num,0) AS act_num,
-          |          nvl(open.td_ad_num,0) AS open_num
-          |   FROM
-          |     (SELECT user_id,
-          |             c_date,
-          |             "active" AS ad_type,
-          |             count(user_id) AS td_ad_num
-          |      FROM
-          |        (SELECT user_id,
-          |                c_date
-          |         FROM xianqueqiao_dwd.dwd_opera_tree_video_ad
-          |         WHERE c_date >= date_sub(current_date(),182)
-          |           AND app_name = "welove"
-          |           AND ad_action = "onAdComplete"
-          |         UNION ALL SELECT cast(user_id AS BIGINT) AS user_id,
-          |                          c_date
-          |         FROM xianqueqiao_dwd.dwd_opera_farm_ad_video
-          |         WHERE c_date>=date_sub(current_date(),182)
-          |           AND app_name = "welove"
-          |           AND ad_action = "onAdComplete"
-          |         UNION ALL SELECT user_id,
-          |                          c_date
-          |         FROM xianqueqiao_dwd.dwd_opera_zoo_video_ad
-          |         WHERE c_date>=date_sub(current_date(),182)
-          |           AND app_name = "welove"
-          |           AND ad_action = "onAdComplete"
-          |         UNION ALL SELECT user_id,
-          |                          c_date
-          |         FROM xianqueqiao_dwd.dwd_opera_fairyland_video_ad
-          |         WHERE c_date>=date_sub(current_date(),182)
-          |           AND app_name = "welove"
-          |           AND ad_action = "onAdComplete"
-          |         UNION ALL SELECT user_id,
-          |                          c_date
-          |         FROM xianqueqiao_dwd.dwd_opera_house_ad_video
-          |         WHERE c_date>=date_sub(current_date(),182)
-          |           AND app_name = "welove"
-          |           AND ad_action = "onAdComplete"
-          |         GROUP BY c_date,
-          |                  user_id) act_ad
-          |      GROUP BY user_id,
-          |               c_date) act
-          |   FULL JOIN
-          |     (SELECT user_id,
-          |             c_date,
-          |             "open" AS ad_type,
-          |             count(user_id) AS td_ad_num
-          |      FROM xianqueqiao_dwd.dwd_behavior_app_front_bpl
-          |      WHERE c_date>=date_sub(current_date(),182)
-          |        AND app_name = "welove"
-          |        AND bn = "reward_video_ad"
-          |        AND ad_action = "onAdShow"
-          |      GROUP BY c_date,
-          |               user_id) OPEN ON act.c_date = open.c_date
-          |   AND act.user_id = open.user_id) AS ad
-          |FULL JOIN
-          |  (SELECT user_id,
-          |          pay_date,
-          |          sum(price) AS price
-          |   FROM xianqueqiao_dwd.dwd_trade_welove_order
-          |   WHERE pay_date>=date_sub(current_date(),182)
-          |     AND pay_date !='null'
-          |   GROUP BY pay_date,
-          |            user_id) AS b ON ad.c_date = b.pay_date
-          |AND ad.user_id = b.user_id
-          |GROUP BY pay_date,
-          |         b.user_id,
-          |         ad.user_id,
-          |         c_date
-           |
+    val start = System.currentTimeMillis()
+
+    val sql_str =
+      """
+        |
+        |SELECT space_id,
+        |       user_id,
+        |       coin_op,
+        |       feed_op,
+        |       plant_op,
+        |       produce_op,
+        |       materials_op
+        |FROM
+        |  (SELECT a.space_id AS space_id,
+        |          a.user_id AS user_id,
+        |          nvl(get_coin,0) coin_op,
+        |          feed_op,
+        |          plant_op,
+        |          produce_op,
+        |          materials_op
+        |   FROM
+        |     (SELECT space_id,
+        |             user_id
+        |      FROM farm_behavior_type
+        |      WHERE space_id IS NOT NULL
+        |        AND space_id !=0
+        |        AND user_id !=0
+        |        AND user_id IS NOT NULL
+        |      GROUP BY space_id,
+        |               user_id) AS a
+        |   LEFT JOIN
+        |     (SELECT space_id,
+        |             user_id,
+        |             sum(amount) AS cost_coin
+        |      FROM farm_behavior_type
+        |      WHERE bn ="rainbow_coin_cost"
+        |      GROUP BY space_id,
+        |               user_id) AS b ON a.space_id = b.space_id
+        |   AND a.user_id = b.user_id
+        |   LEFT JOIN
+        |     (SELECT space_id,
+        |             user_id,
+        |             sum(amount) AS get_coin
+        |      FROM farm_behavior_type
+        |      WHERE bn ="rainbow_coin_get"
+        |      GROUP BY space_id,
+        |               user_id) AS c ON a.space_id = c.space_id
+        |   AND a.user_id = c.user_id
+        |   LEFT JOIN
+        |     (SELECT space_id,
+        |             user_id,
+        |             collect_set(feed_op) AS feed_op
+        |      FROM
+        |        (SELECT space_id,
+        |                user_id,
+        |                map("item_id",cast(item_id AS INT),"count",sum(number)) AS feed_op
+        |         FROM farm_behavior_type
+        |         WHERE behavior_type ="feed"
+        |         GROUP BY space_id,
+        |                  user_id,
+        |                  item_id) aa
+        |      GROUP BY space_id,
+        |               user_id) AS d ON a.space_id = d.space_id
+        |   AND a.user_id =d.user_id
+        |   LEFT JOIN
+        |     (SELECT space_id,
+        |             user_id,
+        |             collect_set(plant_op) AS plant_op
+        |      FROM
+        |        (SELECT space_id,
+        |                user_id,
+        |                map("item_id",cast(item_id AS INT),"count",sum(number)) AS plant_op
+        |         FROM farm_behavior_type
+        |         WHERE behavior_type ="plant"
+        |         GROUP BY space_id,
+        |                  user_id,
+        |                  item_id) aa
+        |      GROUP BY space_id,
+        |               user_id) AS e ON a.space_id = e.space_id
+        |   AND a.user_id =e.user_id
+        |   LEFT JOIN
+        |     (SELECT space_id,
+        |             user_id,
+        |             collect_set(produce_op) AS produce_op
+        |      FROM
+        |        (SELECT space_id,
+        |                user_id,
+        |                map("item_id",cast(item_id AS INT),"count",sum(1)) AS produce_op
+        |         FROM farm_behavior_type
+        |         WHERE behavior_type ="produce"
+        |         GROUP BY space_id,
+        |                  user_id,
+        |                  item_id) aa
+        |      GROUP BY space_id,
+        |               user_id) AS f ON a.space_id = f.space_id
+        |   AND a.user_id =f.user_id
+        |   LEFT JOIN
+        |     (SELECT space_id,
+        |             user_id,
+        |             collect_set(materials_op) AS materials_op
+        |      FROM
+        |        (SELECT space_id,
+        |                user_id,
+        |                map("item_id",cast(item_id AS INT),"count",sum(number)) materials_op
+        |         FROM farm_behavior_type
+        |         WHERE bn IN("building_materials_get")
+        |         GROUP BY space_id,
+        |                  user_id,
+        |                  item_id) aa
+        |      GROUP BY space_id,
+        |               user_id) AS g ON a.space_id = g.space_id
+        |   AND a.user_id =g.user_id) AS bb
+        |WHERE (coin_op != 0
+        |       OR size(feed_op) >0
+        |       OR size(materials_op) >0
+        |       OR size(plant_op) >0
+        |       OR size(produce_op) >0)
            |""".stripMargin
-      //println("Running: " + sql)
-      stmt.execute(sql)
-//
-//      while (res.next()) {
-//        val app_name = res.getString("app_name")
-//        val app_os = res.getString("app_os")
-//        val begin_day = res.getString("begin_day")
-//        val by_day = res.getInt("by_day")
-//        val num = res.getInt("num")
-//        val user_type = res.getString("user_type")
-//        val c_date = res.getString("c_date")
-//        println(
-//          app_name + " " + app_os + " " + begin_day + " " + by_day + " " + num + " " + user_type + " " + c_date
-//        )
-//      }
-      val end_time = System.currentTimeMillis()
-      println(x)
-      println("time_cost:" + (end_time - start_time) / 1000)
+
+    val sql = sql_str
+    //println("Running: " + sql)
+    val rs = stmt.executeQuery(sql)
+    val writer = new PrintWriter(new File("D:\\farm.txt"))
+    while (rs.next()) {
+      val space_id = rs.getString(1)
+      val user_id = rs.getString(2)
+      val coin_op = rs.getInt(3)
+      val feed_op = rs.getString(4)
+      val plant_op = rs.getString(5)
+      val produce_op = rs.getString(6)
+      val materials_op = rs.getString(7)
+
+      val value: String =
+        space_id + " " + user_id + " " + coin_op + " " + feed_op + " " + plant_op + " " + produce_op + " " + materials_op
+      println(value)
+      writer.println(value)
     }
+
+    writer.close()
+    val end = System.currentTimeMillis()
+    println("time_cost_total:" + (`end` - start) / 1000)
   }
 }

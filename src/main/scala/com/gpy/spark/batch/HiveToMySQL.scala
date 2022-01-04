@@ -32,7 +32,7 @@ object HiveToMySQL {
     val sc = spark.sparkContext
 
     val start_time = System.currentTimeMillis()
-    val prop       = new java.util.Properties
+    val prop = new java.util.Properties
     prop.setProperty("driver", "com.mysql.jdbc.Driver")
     val url = "jdbc:mysql://192.168.1.86:3306/decoration"
     prop.setProperty("user", "dw_access")
@@ -40,7 +40,14 @@ object HiveToMySQL {
     val df = spark.sql(
       """select user_id,space_id,unix_timestamp(c_date,'yyyy-MM-dd')*1000 as time from xianqueqiao_dws.dws_user_qqlovespace_new_user_1 where c_date='2019-12-13' """.stripMargin
     )
-    val resultDf = df.select(col("user_id"), col("space_id"), col("time"), row_number().over(Window.orderBy("space_id", "user_id")).alias("row_number"))
+    val resultDf = df.select(
+      col("user_id"),
+      col("space_id"),
+      col("time"),
+      row_number()
+        .over(Window.orderBy("space_id", "user_id"))
+        .alias("row_number")
+    )
     resultDf.show(1000)
     val end_time = System.currentTimeMillis()
     println("time_cost:" + (end_time - start_time) / 1000 + " seconds")

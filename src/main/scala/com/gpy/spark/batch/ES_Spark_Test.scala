@@ -1,6 +1,7 @@
 package com.gpy.spark.batch
-
+import com.alibaba.fastjson.JSON
 import com.alibaba.fastjson.JSONObject
+import com.gpy.spark.SparkWeb.doPost
 import org.apache.spark.sql.functions.{col, collect_set, concat, sum, udf}
 import org.apache.spark.sql.{DataFrame, SparkSession}
 import org.elasticsearch.hadoop.cfg.ConfigurationOptions
@@ -18,10 +19,11 @@ object ES_Spark_Test {
       .appName("ES读取数据")
       .master("local[*]")
       .config(ConfigurationOptions.ES_NODES_WAN_ONLY, "true")
-      .config(ConfigurationOptions.ES_NODES, "192.168.248.14")
+      .config(ConfigurationOptions.ES_NODES, "192.168.248.7")
       .config(ConfigurationOptions.ES_PORT, "9200")
+      .config("spark.debug.maxToStringFields", 1000)
       .config(ConfigurationOptions.ES_NET_HTTP_AUTH_USER, "elastic")
-      .config(ConfigurationOptions.ES_NET_HTTP_AUTH_PASS, "QA2JB7BoHpbBtTd")
+      .config(ConfigurationOptions.ES_NET_HTTP_AUTH_PASS, "d2zN9WGupgqL4Rhq")
       .getOrCreate()
     val query: String =
       """
@@ -34,7 +36,7 @@ object ES_Spark_Test {
         |            "should": [
         |              {
         |                "match": {
-        |                  "sv": "farm"
+        |                  "sv": "wxmp_sweet"
         |                }
         |              }
         |            ],
@@ -45,8 +47,8 @@ object ES_Spark_Test {
         |          "range": {
         |            "@timestamp": {
         |              "format": "strict_date_optional_time",
-        |              "gte": "2021-08-28T16:00:00.000Z",
-        |              "lte": "2021-09-04T15:59:59.999Z"
+        |              "gte": "2021-12-23T16:00:00.000Z",
+        |              "lte": "2021-12-24T05:00:00.000Z"
         |            }
         |          }
         |        }
@@ -58,26 +60,15 @@ object ES_Spark_Test {
         |""".stripMargin
 
     //大概耗时三分钟
-    val df: DataFrame = spark.esDF("dbay-frontend-2021-09-0*", query)
+    val df: DataFrame = spark.esDF("dbay-frontend-2021-12-23", query)
 
-    val this_time = udf(MyUdf.turn_timestamp)
-    df.groupBy("sv", "bn", "url", "err_code", "err_msg")
-      .count()
-      .filter("count >= 10")
-      .orderBy("sv", "bn", "url")
-      .toJSON
-      .foreach { row =>
-        val jo = new JSONObject()
-        val joo = new JSONObject()
-        joo.put("content", row)
-        jo.put("msgtype", "text")
-        jo.put("text", joo)
-        println(jo)
-        doPost.postResponse(
-          "https://qyapi.weixin.qq.com/cgi-bin/webhook/send",
-          "d4ab1ceb-97d1-4192-aad5-212149acce64",
-          jo
-        )
-      }
+    val df2: DataFrame = df
+      .where("space_id is not null and user_id is not null and space_id !=0 and user_id!=0")
+      .selectExpr("space_id", "user_id")
+      .toDF("space_id", "user_id")
+    df2
+      .coalesce(1)
+      .write
+      .text("file:///D:\\ideaProject\\sparkAPI\\result_data\\wxmp_sweet")
   }
 }

@@ -20,10 +20,15 @@ import org.apache.spark.sql.functions.{stddev, _}
 object dexin04 {
   def main(args: Array[String]): Unit = {
     //1.构建本地测试环境
-    val spark = SparkSession.builder().config("spark.serializer", "org.apache.spark.serializer.KryoSerializer").appName("testDemo").master("local[*]").getOrCreate()
-    val sc    = spark.sparkContext
+    val spark = SparkSession
+      .builder()
+      .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
+      .appName("testDemo")
+      .master("local[*]")
+      .getOrCreate()
+    val sc = spark.sparkContext
     import spark.implicits._
-    val user_info_file = "data/user_info_4.csv"
+    val user_info_file = "data/"
 
     //2.加载用户信息文件
     val user_info_rdd = sc.textFile(user_info_file)
@@ -142,7 +147,14 @@ object dexin04 {
         col("std_cost"),
         element_at(col("cost_list"), (size(col("cost_list")) / 2 + 1).cast("int")).alias("median_value_of_cost")
       )
-      .selectExpr("love_days", " retention / (space_cnt*2) *100 as retention_rate", "cost / (space_cnt*2) as cost_avg", "space_cnt", "median_value_of_cost", "std_cost")
+      .selectExpr(
+        "love_days",
+        " retention / (space_cnt*2) *100 as retention_rate",
+        "cost / (space_cnt*2) as cost_avg",
+        "space_cnt",
+        "median_value_of_cost",
+        "std_cost"
+      )
       .orderBy("love_days")
     // 不过滤花费为0的
     val re2 = df
@@ -165,7 +177,12 @@ object dexin04 {
         sum("total_cost").alias("cost"),
         (sum("a_retention") + sum("b_retention")).alias("retention")
       )
-      .selectExpr("love_days", " retention / (space_cnt*2) *100 as retention_rate", "cost / (space_cnt*2) as cost_avg", "space_cnt")
+      .selectExpr(
+        "love_days",
+        " retention / (space_cnt*2) *100 as retention_rate",
+        "cost / (space_cnt*2) as cost_avg",
+        "space_cnt"
+      )
       .orderBy("love_days")
 
     re2

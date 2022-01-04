@@ -31,71 +31,15 @@ object ParseExcelFiles {
         .option("treatEmptyValuesAsNulls", "true")
         .option("inferSchema", "true")
         .option("addColorColumns", "False")
-        .option("dataAddress", sheet + "!A2")
+        .option("dataAddress", sheet + "!A1")
         .load(file)
 
-    val arrGaChaFashion =
-      Array(
-        "头发",
-        "衣服",
-        "裤子",
-        "全身",
-        "鞋子",
-        "头顶",
-        "面具",
-        "耳环",
-        "嘴",
-        "帽子",
-        "眼镜",
-        "项链",
-        "围巾",
-        "双肩包",
-        "单肩包",
-        "胸包",
-        "雨伞",
-        "手套",
-        "左手",
-        "右手",
-        "尾巴",
-        "前景",
-        "背景",
-        "勋章",
-        "斗篷"
-      )
+    val df = readExcel(
+      "file:///C:\\Users\\dell\\Downloads\\query-hive-40954.xlsx",
+      "Sheet"
+    )
 
-    var dataFrame: DataFrame = null
-    for (sheet <- arrGaChaFashion) {
-      val df = readExcel(
-        "file:///C:\\Users\\dell\\Desktop\\乱七八糟的文件\\小家道具\\gacha-fashion.xlsx",
-        sheet
-      ).where("goods_id not in ( 'int','string')")
-        .selectExpr(
-          "goods_id",
-          "name",
-          "type",
-          "bone_type",
-          "gender",
-          "image",
-          "price",
-          "desc",
-          "priority",
-          "gacha_id",
-          "weight",
-          "rare",
-          "recycle_price"
-        )
-      if (dataFrame == null) {
-        dataFrame = spark.createDataFrame(spark.sparkContext.emptyRDD[Row], df.schema)
-        dataFrame.show(10)
-      }
-      dataFrame = dataFrame.union(df)
-    }
-    //dataFrame.show(1000)
+    df.show(100)
 
-    dataFrame
-      .where("goods_id not in ( 'int','string')")
-      .write
-      .mode(SaveMode.Append)
-      .saveAsTable("xianqueqiao_dim.dim_opera_house_items")
   }
 }

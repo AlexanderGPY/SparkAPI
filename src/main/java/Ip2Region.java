@@ -28,11 +28,11 @@ public class Ip2Region extends GenericUDF {
     public ObjectInspector initialize(ObjectInspector[] arguments) throws UDFArgumentException {
         converter = ObjectInspectorConverters.getConverter(arguments[0], PrimitiveObjectInspectorFactory.writableStringObjectInspector);
 
-        String dbPath = "data/ip2region.db";
+        String dbPath = "";
 
         File file = new File(dbPath);
         if (!file.exists()) {
-            System.out.println("Error: Invalid ip2region.db file");
+            System.out.println("Error: Invalid  file");
             return null;
         }
         DbConfig config = null;

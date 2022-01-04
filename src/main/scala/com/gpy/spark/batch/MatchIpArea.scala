@@ -58,7 +58,7 @@ object MatchIpArea {
     //val spark = SparkSession.builder().config("spark.serializer", "org.apache.spark.serializer.KryoSerializer").appName("testDemo").master("local[*]").getOrCreate()
     val sc = spark.sparkContext
     import spark.implicits._
-    val input = "file:///D:\\ideaProject\\sparkAPI\\data/ip.merge.txt"
+    val input = ""
 
     //2.加载维度文件
     val dim_rdd = sc.textFile(input)
@@ -143,7 +143,7 @@ object MatchIpArea {
     //val spark = SparkSession.builder().config("spark.serializer", "org.apache.spark.serializer.KryoSerializer").appName("testDemo").master("local[*]").getOrCreate()
     val sc = spark.sparkContext
     import spark.implicits._
-    val input = "file:///D:\\ideaProject\\sparkAPI\\data/ip.merge.txt"
+    val input = ""
 
     //2.加载维度文件
     val dim_rdd = sc.textFile(input)

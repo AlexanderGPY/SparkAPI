@@ -6,8 +6,6 @@ import com.gpy.spark.batch.MatchIpArea
 import org.apache.spark.sql.SparkSession
 import org.apache.spark.sql.expressions.Window
 import org.apache.spark.sql.functions.{asc, col, countDistinct, desc, sum}
-import org.json4s.DefaultFormats
-import org.json4s.native.Serialization
 
 /**
   * @description:
