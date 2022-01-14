@@ -47,7 +47,7 @@
         <commons-csv.version>1.6</commons-csv.version>
         <mysql.jdbc.version>5.1.47</mysql.jdbc.version>
         <httpclient.version>4.5.3</httpclient.version>
-        <redis.version>2.9.0</redis.version>
+        <redis.version>3.2.0</redis.version>
 
         <!-- bigdata -->
         <scala.version>2.11.8</scala.version>
@@ -75,6 +75,21 @@
             <groupId>org.codehaus.janino</groupId>
             <artifactId>janino</artifactId>
             <version>3.0.8</version>
+        </dependency>
+
+
+        <!-- https://mvnrepository.com/artifact/com.redislabs/spark-redis -->
+        <dependency>
+            <groupId>com.redislabs</groupId>
+            <artifactId>spark-redis_2.11</artifactId>
+            <version>2.5.0</version>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/redis.clients/jedis -->
+        <dependency>
+            <groupId>redis.clients</groupId>
+            <artifactId>jedis</artifactId>
+            <version>${redis.version}</version>
         </dependency>
 
 
@@ -234,12 +249,6 @@
             <scope>${scope}</scope>
         </dependency>
 
-        <!-- https://mvnrepository.com/artifact/redis.clients/jedis -->
-        <dependency>
-            <groupId>redis.clients</groupId>
-            <artifactId>jedis</artifactId>
-            <version>${redis.version}</version>
-        </dependency>
 
 
         <!-- kafka-->
